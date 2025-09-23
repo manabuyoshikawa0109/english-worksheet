@@ -41,6 +41,18 @@
         font-display: swap;
       }
 
+      select {
+        width: auto !important;
+      }
+
+      input[type="color"] {
+        width: 40px;
+        height: 30px;
+        padding: 0;
+        border: none;
+        cursor: pointer;
+      }
+
       body {
         margin: 0;
         font-family: sans-serif;
@@ -72,13 +84,6 @@
         font-size: 0.85rem;
         width: 56px;
         margin: 0;
-      }
-      .color-picker input[type="color"] {
-        width: 42px;
-        height: 32px;
-        padding: 0;
-        border: none;
-        cursor: pointer;
       }
       .color-picker select {
         font-size: 0.9rem;
@@ -350,6 +355,13 @@
       /* 文字装飾ツールの見た目（任意） */
       .format-toolbar .btn {
         width: 40px;
+        background: linear-gradient(180deg, #7db2ff 0%, #5b8eea 45%, #3a6fd6 100%);
+        color: white;
+        border: none;
+      }
+
+      .format-toolbar .fw-bold, .format-toolbar .fst-italic {
+        border-right: 2px solid white !important;
       }
 
       @media (max-width: 768px) {
@@ -412,21 +424,21 @@
         >
           <button
             id="btnBold"
-            class="btn btn-outline-light fw-bold"
+            class="btn fw-bold"
             title="太字 (Ctrl+B / ⌘B)"
           >
             B
           </button>
           <button
             id="btnItalic"
-            class="btn btn-outline-light fst-italic"
+            class="btn fst-italic"
             title="斜体 (Ctrl+I / ⌘I)"
           >
             I
           </button>
           <button
             id="btnUnderline"
-            class="btn btn-outline-light text-decoration-underline"
+            class="btn text-decoration-underline"
             title="下線 (Ctrl+U / ⌘U)"
           >
             U
