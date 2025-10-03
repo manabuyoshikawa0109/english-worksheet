@@ -10,6 +10,9 @@
     integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
+    /* =============================================
+    フォント設定
+    ============================================= */
     @font-face {
       font-family: "CJ Gothic";
       src: url("fonts/CJ_Gothic/CJ_Gothic_2019-Regular.woff2") format("woff2"),
@@ -34,7 +37,9 @@
       font-style: italic;
       font-display: swap;
     }
-
+    /* =============================================
+    パーツの共通CSS
+    ============================================= */
     /* input-group内のフォームは横一杯に幅を取らないようにする */
     .input-group > .form-select {
       flex: none;
@@ -59,12 +64,10 @@
     }
 
     body {
-      margin: 0;
       font-family: sans-serif;
-      background: #f5f5f5;
-      display: flex;
+      background: #f5f5f5; /* ワークシートを囲う要素の背景色を変更 */
+      display: flex; /* サイドバーとワークシートを横並びにする */
       height: 100vh;
-      overflow: hidden;
     }
 
     .sidebar {
@@ -72,8 +75,7 @@
       background: #343a40;
       color: #fff;
       padding: 20px;
-      flex-shrink: 0;
-      overflow-y: auto;
+      overflow-y: scroll;
     }
 
     .sidebar h4 {
@@ -81,22 +83,27 @@
     }
 
     .main-content {
+      /* フレックスコンテナ内に余白があるとき、フレックスアイテムに指定した比率の分だけ余白を追加
+      ここでは片方のフレックスアイテムに「1」を指定しているのでこのフレックスアイテムが画面右側まで伸び余白を埋める
+      bodyタグがフレックスコンテナとなる */
       flex-grow: 1;
-      overflow-y: auto;
+      overflow-y: scroll;
       padding: 30px;
     }
 
+    /* =============================================
+    ワークシートのCSS
+    ============================================= */
     .worksheet {
       max-width: 900px;
-      margin: 0 auto;
+      margin: 0 auto; /* 左右中央揃え */
       background: #fff;
       padding: 30px 40px;
       border: 1px solid #ccc;
       box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
-      font-family: "Nunito", "Noto Sans JP", sans-serif;
     }
 
-    .header-wrapper {
+    .worksheet-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -104,32 +111,31 @@
       margin-bottom: 1rem;
     }
 
-    .grade-block {
-      display: grid;
-      grid-template-columns: repeat(3, 80px);
+    .student-info {
+      display: grid; /* フレックスアイテムをx、y軸方向に配置 */
+      grid-template-columns: repeat(3, 80px); /* 横並びにするフレックスアイテム数とフレックスアイテムの横幅 */
       border: 1px solid #000;
-      flex-shrink: 0;
     }
 
-    .header-cell {
+    .student-info-box {
       border-left: 1px solid #000;
       padding: 4px 6px;
       height: 80px;
       display: flex;
-      flex-direction: column;
+      flex-direction: column; /* フレックスアイテムを上から下に配置 */
       justify-content: space-between;
     }
 
-    .header-cell:first-child {
+    .student-info-box:first-child {
       border-left: none;
     }
 
-    .header-label {
+    .student-info-label {
       font-size: 0.65rem;
       font-weight: bold;
     }
 
-    .header-input {
+    .student-info-input {
       font-size: 1.5rem;
       border: none;
       background: transparent;
@@ -137,19 +143,41 @@
       padding: 0;
     }
 
-    .header-input:focus {
-      outline: none;
+    .student-info-input:focus {
+      outline: none; /* フォームにカーソルが当たった際、輪郭線を表示しない */
     }
 
-    .name-date-block {
+    .student-name-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      font-weight: bold;
+      position: absolute;
+      top: -1.3rem;
+      left: 0;
+      right: 0;
+    }
+
+    .date {
+      letter-spacing: 35px; /* テキストの水平方向の字間のスペース */
+    }
+
+    .line-group {
       position: relative;
-      height: 56px;
+      height: 55px;
+      margin-bottom: 50px;
+      /* フレックスコンテナ内に余白があるとき、フレックスアイテムに指定した比率の分だけ余白を追加
+      ここでは片方のフレックスアイテムに「1」を指定しているのでこのフレックスアイテムが画面右側まで伸び余白を埋める
+      bodyタグがフレックスコンテナとなる */
       flex-grow: 1;
-      min-width: 0;
-      margin-top: 15px;
     }
 
-    .name-date-block .line {
+    .student-name {
+      margin-top: 20px;
+      margin-bottom: 0 !important;
+    }
+
+    .line {
       position: absolute;
       left: 0;
       right: 0;
@@ -158,121 +186,51 @@
 
     .line1 {
       top: 0;
-      background-color: #007bff;
     }
 
     .line2 {
       top: 18px;
-      border-top: 1px dashed #66b3ff;
     }
 
     .line3 {
       top: 36px;
-      border-top: 1px dashed #66b3ff;
     }
 
     .line4 {
       top: 54px;
-      background-color: #007bff;
-    }
-
-    .name-date-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.7rem;
-      font-weight: bold;
-      position: absolute;
-      top: -1.2rem;
-      left: 0;
-      right: 0;
-    }
-
-    .date-dots {
-      font-weight: normal;
-      font-size: 0.8em;
-      letter-spacing: 20px;
-      margin-left: 5px;
-    }
-
-    .name-date-inputs {
-      display: flex;
-      justify-content: space-between;
-      position: absolute;
-      inset: 0;
-      padding: 0 10px;
-      gap: 10px;
-    }
-
-    .four-line-input {
-      width: 100%;
-      border: none;
-      background: transparent;
-      font-size: 3rem;
-      line-height: 56px;
-      padding: 0 10px 9px 10px;
-      font-family: "CJ Gothic", sans-serif;
-      white-space: pre-wrap;
-      overflow: hidden;
-      color: #000;
-    }
-
-    .four-line-input:focus {
-      outline: 2px solid rgba(0, 123, 255, 0.3);
-      background-color: rgba(0, 123, 255, 0.08);
-    }
-
-    .worksheet-title {
-      margin: 0 0 1.4rem;
-      text-align: center;
-      font-weight: bold;
-      font-size: 2rem;
-      line-height: 48px;
-      height: 48px;
-      border-bottom: 2px solid #0b76b7;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-family: "Nunito", sans-serif;
-    }
-
-    .line-group {
-      position: relative;
-      height: 56px;
-      margin-bottom: 50px;
-    }
-
-    .line-group .line {
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 1px;
     }
 
     /* 入力フォーム（scaleXで拡大縮小） */
     .line-input {
-      position: absolute;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      background: transparent;
       font-size: 3rem;
-      line-height: 56px;
-      padding: 0 10px 9px 10px;
+      line-height: 50px;
+      padding: 0 10px;
       font-family: "CJ Gothic", sans-serif;
-      white-space: nowrap;
-      overflow: hidden;
-      cursor: text;
-      color: #000;
-      min-width: 100%;
-      width: fit-content;
-      right: auto;
-      transform-origin: left center;
-      transform: scaleX(1);
+      white-space: nowrap; /* 改行しない */
+      cursor: pointer;
+      min-width: 100%; /* 最低横幅は100% */
+      width: fit-content; /* 横幅は入力文字の長さに合わせる */
+      height: 100%;
+      transform-origin: left center; /* 要素を回転や拡大・縮小する際の基点(原点) */
+      transform: scaleX(1); /* 要素のX軸方向への拡大率 */
     }
 
     .line-input:focus {
       outline: 2px solid rgba(0, 123, 255, 0.3);
       background-color: rgba(0, 123, 255, 0.08);
+    }
+
+    .worksheet-title {
+      margin-bottom: 1.4rem;
+      text-align: center;
+      font-weight: bold;
+      font-size: 2rem;
+      height: 48px;
+      border-bottom: 2px solid #0b76b7;
+      white-space: nowrap; /* 自動改行しない */
+      overflow: hidden; /* 入力文字が横幅を超えた場合、超えた文字は表示しない */
+      text-overflow: ellipsis; /* 入力文字が横幅を超えた場合、3点表示する */
+      font-family: "Nunito", sans-serif;
     }
 
     /* =============================================
@@ -338,19 +296,25 @@
       font-size: 0.95rem;
     }
 
+    /* =============================================
+    タブレット対応
+    ============================================= */
     @media (max-width: 768px) {
-      .header-wrapper {
-        flex-direction: column;
+      .sidebar {
+        min-width: 300px;
+      }
+
+      .worksheet {
+        width: 900px;
       }
     }
 
+    /* =============================================
+    印刷対応
+    ============================================= */
     @media print {
-      body {
-        background: #fff;
-      }
-
       .sidebar {
-        display: none !important;
+        display: none;
       }
 
       .main-content {
@@ -358,13 +322,9 @@
       }
 
       .worksheet {
-        display: block !important;
-        margin: 0 !important;
-        border: none !important;
-        box-shadow: none !important;
-        max-width: 100% !important;
-        width: 100% !important;
-        page-break-inside: avoid;
+        margin: 0;
+        border: none;
+        box-shadow: none;
       }
     }
   </style>
@@ -464,36 +424,34 @@
     </div>
   </div>
 
-  <!-- ✅ ワークシート -->
+  <!-- ワークシート -->
   <div class="main-content">
     <div class="worksheet">
-      <div class="header-wrapper">
-        <div class="grade-block">
-          <div class="header-cell">
-            <div class="header-label">Grade</div>
-            <input type="text" class="header-input" />
+      <div class="worksheet-header">
+        <div class="student-info">
+          <div class="student-info-box">
+            <div class="student-info-label">Grade</div>
+            <input type="text" class="student-info-input" />
           </div>
-          <div class="header-cell">
-            <div class="header-label">Class</div>
-            <input type="text" class="header-input" />
+          <div class="student-info-box">
+            <div class="student-info-label">Class</div>
+            <input type="text" class="student-info-input" />
           </div>
-          <div class="header-cell">
-            <div class="header-label">No.</div>
-            <input type="text" class="header-input" />
+          <div class="student-info-box">
+            <div class="student-info-label">No.</div>
+            <input type="text" class="student-info-input" />
           </div>
         </div>
 
-        <div class="name-date-block">
+        <div class="line-group student-name">
           <div class="line line1"></div>
           <div class="line line2"></div>
           <div class="line line3"></div>
           <div class="line line4"></div>
-          <div class="name-date-labels">
-            <span>Name</span><span>Date<span class="date-dots"> ・ ・ </span></span>
+          <div class="student-name-label">
+            <span>Name</span><span>Date<span class="date"> ・・</span></span>
           </div>
-          <div class="name-date-inputs">
-            <div class="four-line-input" contenteditable="true"></div>
-          </div>
+          <div class="line-input" contenteditable="true"></div>
         </div>
       </div>
 
@@ -515,7 +473,6 @@
     function paintLine(lineKey) {
       const cfg = lineStyles[lineKey];
       document.querySelectorAll("." + lineKey).forEach((el) => {
-        el.style.backgroundColor = "transparent";
         el.style.borderTop = `1px ${cfg.style} ${cfg.color}`;
       });
     }
@@ -652,8 +609,8 @@
           return;
         $("#worksheetTitleInput").val("");
         $("#worksheetTitle").text("");
-        $(".worksheet .header-input").val("");
-        $(".worksheet .four-line-input, .worksheet .line-input").each(
+        $(".worksheet .student-info-input").val("");
+        $(".worksheet .line-input").each(
           function () {
             this.innerHTML = "";
           }
