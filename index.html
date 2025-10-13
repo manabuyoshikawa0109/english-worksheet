@@ -20,6 +20,14 @@
       font-weight: normal;
       font-style: normal;
       font-display: swap;
+      /*
+      フォントファイルの内部メトリクス(文字の高さや行間を決める設計上の数値情報。OS・ブラウザ間で解釈が異なる)を
+      強制的に上書きし、異なる環境で同一の縦配置に揃える。
+      以下合計で「行間」を計算し、line-heightの挙動を決める。
+      */
+      ascent-override: 90%; /* ベースライン(文字が乗る線)から上に伸びる高さ */
+      descent-override: 10%; /* ベースラインから下に伸びる高さ */
+      line-gap-override: 0%; /* ascentとdescentの外側に追加される推奨余白 */
     }
 
     @font-face {
@@ -203,7 +211,7 @@
     /* 入力フォーム（scaleXで拡大縮小） */
     .line-input {
       font-size: 3rem;
-      line-height: 50px;
+      line-height: 37px;
       padding: 0 10px;
       font-family: "CJ Gothic", sans-serif;
       white-space: nowrap; /* 改行しない */
