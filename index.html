@@ -226,74 +226,11 @@
       font-weight: bold;
       font-size: 2rem;
       height: 48px;
-      border-bottom: 2px solid #0b76b7;
+      border-bottom: 2px solid #000000;
       white-space: nowrap; /* 自動改行しない */
       overflow: hidden; /* 入力文字が横幅を超えた場合、超えた文字は表示しない */
       text-overflow: ellipsis; /* 入力文字が横幅を超えた場合、3点表示する */
       font-family: "Nunito", sans-serif;
-    }
-
-    /* =============================================
-    行の拡大・縮小ボタンのCSS
-    ============================================= */
-    .zoom-btn {
-      height: 40px;
-      border: none;
-      border-radius: 15px;
-      color: #fff;
-      font-weight: bold;
-      letter-spacing: 0.5px; /* 字間のスペース */
-      background: linear-gradient(180deg,
-          #7db2ff 0%,
-          #5b8eea 45%,
-          #3a6fd6 100%);
-      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .zoom-btn .letter {
-      font-size: 1.1rem;
-    }
-
-    .zoom-in-btn {
-      margin-right: -5px;
-    }
-
-    .zoom-out-btn {
-      margin-left: -5px;
-    }
-
-    .zoom-in-btn .letter {
-      transform: scaleX(1.2);
-    }
-
-    .zoom-out-btn .letter {
-      transform: scaleX(0.5);
-    }
-
-    .zoom-percent {
-      height: 34px;
-      padding: 0 5px;
-      border-radius: 8px;
-      background: #cfefff;
-      color: #0b4a8f;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8),
-        0 1px 0 rgba(0, 0, 0, 0.2);
-      cursor: pointer;
-      user-select: none;
-      z-index: 1;
-    }
-
-    .zoom-percent small {
-      font-weight: 700;
-      font-size: 0.95rem;
     }
 
     /* =============================================
@@ -334,7 +271,7 @@
   <div class="sidebar">
 
     <h4>ワークシートのタイトル</h4>
-    <input type="text" id="worksheetTitleInput" class="form-control" placeholder="例）Today's weather" />
+    <input id="worksheetTitleInput" type="text" class="form-control" placeholder="例）Today's weather" />
 
     <hr>
 
@@ -359,7 +296,6 @@
 
     <hr>
 
-    <!-- ここはOK -->
     <h4 class="mt-4">罫線のスタイル</h4>
     <div class="input-group mb-4">
       <span class="input-group-text">第</span>
@@ -384,36 +320,20 @@
 
     <hr>
 
-    <!-- ここは確認済み -->
     <h4 class="mt-4">行の幅</h4>
-    <!-- <div class="d-flex align-items-center gap-2">
-      <select id="targetRow" class="form-select"></select>
-      <div class="d-flex align-items-center">
-        <button id="zoomInBtn" class="zoom-btn zoom-in-btn" title="拡大">
-          <span>←</span><span class="letter">A</span><span>→</span>
-        </button>
-        <div id="zoomPercent" class="zoom-percent" title="ダブルクリックで100%に戻す">
-          <small id="zoomVal">100%</small>
-        </div>
-        <button id="zoomOutBtn" class="zoom-btn zoom-out-btn" title="縮小">
-          <span>→</span><span class="letter">A</span><span>←</span>
-        </button>
-      </div>
-    </div> -->
     <div class="input-group mb-4">
       <select id="targetRow" class="form-select"></select>
       <span class="input-group-text">行目</span>
-      <input type="number" class="form-control" value="100" min="0" max="100" step="1" >
+      <input id="rowScaleValue" type="number" class="form-control" value="100" min="0" max="100" step="1" >
       <span class="input-group-text">%</span>
     </div>
-    <input type="range" class="w-100" value="100" min="0" max="100" step="1">
+    <input id="rowScaleRange" type="range" class="w-100" value="100" min="0" max="100" step="1">
 
     <hr>
 
-    <!-- ここは確認済み -->
     <h4 class="mt-4">その他の操作</h4>
     <div class="d-flex align-items-center gap-2">
-      <button id="printBtn" class="btn btn-primary w-50">
+      <button class="btn btn-primary w-50" onclick="window.print(); return false;">
         <i class="fa-solid fa-print"></i>
         印刷
       </button>
@@ -456,179 +376,191 @@
       </div>
 
       <div id="worksheetTitle" class="worksheet-title"></div>
-      <div class="lines-container" id="lines"></div>
+      <div id="lines"></div>
     </div>
   </div>
 
-  <!-- ✅ スクリプト -->
+  <!-- スクリプト -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script>
-    // 罫線スタイルの状態保持
-    const lineStyles = {
-      line1: { color: "#007bff", style: "solid" },
-      line2: { color: "#66b3ff", style: "dotted" },
-      line3: { color: "#66b3ff", style: "dotted" },
-      line4: { color: "#007bff", style: "solid" },
-    };
-    function paintLine(lineKey) {
-      const cfg = lineStyles[lineKey];
-      document.querySelectorAll("." + lineKey).forEach((el) => {
-        el.style.borderTop = `1px ${cfg.style} ${cfg.color}`;
-      });
-    }
-    function syncControlsTo(lineKey) {
-      const cfg = lineStyles[lineKey];
-      document.getElementById("lineColor").value = cfg.color;
-      document.getElementById("lineStyle").value = cfg.style;
-    }
-    function applyFromControls() {
-      const lineKey = document.getElementById("targetLine").value;
-      lineStyles[lineKey].color = document.getElementById("lineColor").value;
-      lineStyles[lineKey].style = document.getElementById("lineStyle").value;
-      paintLine(lineKey);
-    }
-
-    // ── 直近にフォーカスした line-input を保持 ──
-    let lastActiveEditable = null;
-    $(document).on("focus click keyup", ".line-input", function () {
-      lastActiveEditable = this;
-    });
-
-    // 文字色（line-input の選択範囲に適用）
-    const textColor = document.getElementById("textColor");
-    textColor.addEventListener("input", () => {
-      if (!lastActiveEditable) {
-        alert("4本罫線の入力欄を選択してから操作してください。");
-        return;
-      }
-      lastActiveEditable.focus();
-      document.execCommand("styleWithCSS", false, true);
-      document.execCommand("foreColor", false, textColor.value);
-    });
-
-    // ── 文字装飾（太字／斜体／下線） ──
-    function runFormat(cmd) {
-      if (!lastActiveEditable) {
-        alert("4本罫線の入力欄を選択してから操作してください。");
-        return;
-      }
-      lastActiveEditable.focus();
-      document.execCommand("styleWithCSS", false, true);
-      document.execCommand(cmd, false, null);
-    }
-    // mousedownで実行して選択消失を防ぐ
-    document.getElementById("btnBold").addEventListener("mousedown", (e) => {
-      e.preventDefault();
-      runFormat("bold");
-    });
-    document
-      .getElementById("btnItalic")
-      .addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        runFormat("italic");
-      });
-    document
-      .getElementById("btnUnderline")
-      .addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        runFormat("underline");
-      });
-
-    $(function () {
-      // 本文生成
-      const numLines = 9;
-      for (let i = 0; i < numLines; i++) {
-        $("#lines").append(`
+    // ワークシートの行を生成
+    for (let i = 1; i <= 9; i++) {
+      $("#lines").append(`
         <div class="line-group">
           <div class="line line1"></div>
           <div class="line line2"></div>
           <div class="line line3"></div>
           <div class="line line4"></div>
-          <div class="line-input" contenteditable="true" data-scale="100"></div>
+          <div class="line-input" contenteditable="true"></div>
         </div>
       `);
+    }
+
+    // 入力された文字をワークシートのタイトルに出力
+    $("#worksheetTitleInput").on("input", function() {
+      $("#worksheetTitle").text($(this).val());
+    });
+
+    // 直近にフォーカスした行の入力フォームを保持
+    let $lastActiveLineInput = null;
+    $(document).on("focus click keyup", ".line-input", function () {
+      $lastActiveLineInput = this;
+    });
+
+    // 選択した文字の色を変更
+    $("#textColor").on("input", function() {
+      if (!$lastActiveLineInput) {
+        alert("スタイルを変更したい文字を選択してください。");
+        return;
+      }
+      $lastActiveLineInput.focus();
+      // 書式変更をHTMLタグではなくCSSスタイルで適用するよう、execCommand()の動作モードを切り替える
+      document.execCommand("styleWithCSS", false, true);
+      document.execCommand("foreColor", false, $(this).val());
+    });
+
+    // 文字のフォントを変更する(太字・斜体・下線)
+    function changeTargetFontStyle(cmd) {
+      if (!$lastActiveLineInput) {
+        alert("スタイルを変更したい文字を選択してください。");
+        return;
+      }
+      $lastActiveLineInput.focus();
+      document.execCommand("styleWithCSS", false, true);
+      document.execCommand(cmd, false, null);
+    }
+
+    $("#btnBold").on("mousedown", function(e) {
+      e.preventDefault();
+      changeTargetFontStyle("bold");
+    });
+
+    $("#btnItalic").on("mousedown", function(e) {
+      e.preventDefault();
+      changeTargetFontStyle("italic");
+    });
+
+    $("#btnUnderline").on("mousedown", function(e) {
+      e.preventDefault();
+      changeTargetFontStyle("underline");
+    });
+
+    // 各罫線のスタイルを保持した変数
+    const lineStyles = {
+      line1: { color: "#000000", style: "solid" },
+      line2: { color: "#000000", style: "dashed" },
+      line3: { color: "#33CCFF", style: "solid" },
+      line4: { color: "#000000", style: "solid" },
+    };
+
+    // 対象罫線のスタイルを変更する
+    function changeTargetLineStyle(targetLine) {
+      const lineStyle = lineStyles[targetLine];
+      $(`.${targetLine}`).css("border-top", `1px ${lineStyle.style} ${lineStyle.color}`);
+    }
+
+    // 対象罫線のスタイルをフォームに保持する
+    function setTargetLineStyleToForm(targetLine) {
+      const lineStyle = lineStyles[targetLine];
+      $("#lineStyle").val(lineStyle.style);
+      $("#lineColor").val(lineStyle.color);
+    }
+
+    // 罫線のスタイル初期化
+    for (let i = 1; i <= 4; i++) {
+      changeTargetLineStyle(`line${i}`);
+    }
+
+    // サイドバーで対象の罫線が変更された場合、そのスタイルをフォームに保持する
+    setTargetLineStyleToForm("line1");
+    $("#targetLine").on("change", function() {
+      setTargetLineStyleToForm($(this).val());
+    });
+
+    // サイドバーで罫線のスタイルが変更された場合、対象の罫線のスタイルを変更する
+    $("#lineColor, #lineStyle").on("input change", function() {
+      const targetLine = $("#targetLine").val();
+      const color = $("#lineColor").val();
+      const style = $("#lineStyle").val();
+
+      // 対象罫線のセレクトボックスが変更された際、その罫線のスタイルと色を入力フォームに保持するためlineStyles変数の値を変えておく
+      lineStyles[targetLine].color = color;
+      lineStyles[targetLine].style = style;
+      changeTargetLineStyle(targetLine);
+    });
+
+    const STEP = 1, // 拡大・縮小のステップ数
+          MIN = 0, // 拡大・縮小の最小値
+          MAX = 100; // 拡大・縮小の最大値
+
+    // 行ごとの拡大・縮小率
+    const scales = {
+      0: 100,
+      1: 100,
+      2: 100,
+      3: 100,
+      4: 100,
+      5: 100,
+      6: 100,
+      7: 100,
+      8: 100,
+      9: 100,
+    };
+
+    //「行の幅」のセレクトボックス
+    const $rowSelect = $("#targetRow");
+
+    // 行の入力フォームの数だけセレクトボックスのオプション要素を追加
+    $(".line-input").each((i) =>
+      $rowSelect.append(`<option value="${i}">${i + 1}</option>`)
+    );
+
+    //「行の幅」のセレクトボックスから対象行の入力フォームを取得
+    function $targetLineInput() {
+      const value = Number($rowSelect.val());
+      return $(".line-input").eq(value);
+    }
+
+    // 行の拡大・縮小率を「行の幅」の数値、範囲選択フォームにセット
+    function setTargetRowScaleToForm(scale) {
+      $('#rowScaleRange, #rowScaleValue').val(scale);
+    }
+
+    // 対象行の入力フォームに拡大・縮小率を適用
+    function applyScaleToTargetLineInput(scale) {
+      $targetLineInput().css("transform", `scaleX(${scale / 100})`);
+    }
+
+    //「行の幅」の数値、範囲選択フォーム変更時のイベント
+    $('#rowScaleRange, #rowScaleValue').on('input', function() {
+      const value = Number($(this).val());
+      if (!(MIN <= value && value <= MAX)) {
+        alert(`行の幅の倍率は${MIN} 〜 ${MAX}の間で指定してください。`);
+        return;
       }
 
-      // タイトル
-      $("#worksheetTitleInput").on("input", function () {
-        $("#worksheetTitle").text(this.value);
-      });
+      //「行の幅」のセレクトボックスが変更された時、選択された行の拡大・縮小率をフォームに保持するために変数の値を変えておく
+      const targetRowSelectValue = Number($rowSelect.val());
+      scales[targetRowSelectValue] = value;
+      applyScaleToTargetLineInput(value);
+      setTargetRowScaleToForm(value);
+    });
 
-      // 罫線スタイル初期化
-      ["line1", "line2", "line3", "line4"].forEach(paintLine);
-      syncControlsTo("line1");
-      $("#targetLine").on("change", function () {
-        syncControlsTo(this.value);
-      });
-      $("#lineColor, #lineStyle").on("input change", applyFromControls);
+    //「行の幅」のセレクトボックスが変更した時のイベント
+    $("#targetRow").on("change", function() {
+      const value = Number($(this).val());
+      const scale = scales[value];
+      setTargetRowScaleToForm(scale);
+      $targetLineInput().focus();
+    });
 
-      // 拡大・縮小（1%刻み／0〜100%）
-      const $selector = $("#targetRow");
-      $(".line-input").each((i) =>
-        $selector.append(`<option value="${i}">${i + 1}</option>`)
-      );
-      const STEP = 1,
-        MIN = 0,
-        MAX = 100;
-      function $current() {
-        return $(".line-input").eq(parseInt($selector.val(), 10) || 0);
-      }
-      function setPercentDisplay(p) {
-        $("#zoomVal").text(`${p}%`);
-      }
-      function applyScale($el, percent) {
-        const p = Math.max(MIN, Math.min(MAX, percent | 0));
-        $el.css("transform", `scaleX(${p / 100})`).attr("data-scale", p);
-        setPercentDisplay(p);
-      }
-      setPercentDisplay(
-        parseInt($(".line-input").first().attr("data-scale"), 10) || 100
-      );
-      $("#zoomInBtn").on("click", () => {
-        const $t = $current();
-        applyScale($t, +($t.attr("data-scale") || 100) + STEP);
-      });
-      $("#zoomOutBtn").on("click", () => {
-        const $t = $current();
-        applyScale($t, +($t.attr("data-scale") || 100) - STEP);
-      });
-      $("#targetRow").on("change", () => {
-        const p = parseInt($current().attr("data-scale") || "100", 10);
-        setPercentDisplay(p);
-        $current().focus();
-      });
-      $("#zoomPercent").on("dblclick", () => applyScale($current(), 100));
-
-      // 全消去（文字のみ）
-      $("#clearBtn").on("click", function () {
-        if (
-          !confirm(
-            "ワークシート上の文字をすべて削除します。よろしいですか？"
-          )
-        )
-          return;
-        $("#worksheetTitleInput").val("");
-        $("#worksheetTitle").text("");
-        $(".worksheet .student-info-input").val("");
-        $(".worksheet .line-input").each(
-          function () {
-            this.innerHTML = "";
-          }
-        );
-        $(".line-input").first().focus();
-      });
-
-      // 印刷プレビュー
-      $("#printBtn").on("click", function () {
-        if (
-          document.activeElement &&
-          (document.activeElement.isContentEditable ||
-            document.activeElement.tagName === "INPUT")
-        ) {
-          document.activeElement.blur();
-        }
-        setTimeout(() => window.print(), 0);
-      });
+    // ワークシート上の全文字をクリア
+    $("#clearBtn").on("click", function () {
+      if (!confirm("ワークシート上の文字をすべて削除します。よろしいですか？")) return;
+      $("#worksheetTitle").text("");
+      $("#worksheetTitleInput, .student-info-input").val("");
+      $(".line-input").html('');
+      $(".line-input").first().focus();
     });
   </script>
 </body>
