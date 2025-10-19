@@ -108,7 +108,6 @@
       background: #fff;
       padding: 30px 40px;
       border: 1px solid #ccc;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
     }
 
     .worksheet-header {
@@ -258,18 +257,13 @@
     印刷対応
     ============================================= */
     @media print {
-      .sidebar {
-        display: none;
+      :-webkit-scrollbar {
+        display: none; /* Windowsでスクロールバーが表示されるのを防ぐ */
       }
 
-      .main-content {
-        padding: 0 !important;
-      }
-
-      .worksheet {
-        margin: 0;
-        border: none;
-        box-shadow: none;
+      @page {
+        size: A4 landscape; /* A4用紙横向き */
+        margin: 0; /* 用紙の余白 */
       }
     }
   </style>
@@ -341,12 +335,12 @@
 
     <h4 class="mt-4">その他の操作</h4>
     <div class="d-flex align-items-center gap-2">
-      <button class="btn btn-primary w-50" onclick="window.print(); return false;">
-        <i class="fa-solid fa-print"></i>
-        印刷
+      <button id="downloadPdfBtn" class="btn btn-primary w-50">
+        <i class="fa-regular fa-file-pdf"></i>
+        PDF出力
       </button>
       <button id="clearBtn" class="btn btn-danger w-50">
-        <i class="fa-solid fa-trash"></i>
+        <i class="fa-solid fa-trash-can"></i>
         クリア
       </button>
     </div>
@@ -354,20 +348,22 @@
 
   <!-- ワークシート -->
   <div class="main-content">
-    <div class="worksheet">
+    <div id="worksheet" class="worksheet">
       <div class="worksheet-header">
         <div class="student-info">
           <div class="student-info-box">
             <div class="student-info-label">Grade</div>
-            <input type="text" class="student-info-input" />
+            <!-- input要素だとhtml2canvasでキャプチャした際に入力文字が上に配置され、切れてしまう不具合があるためcontenteditableを使用 -->
+            <!-- 参考：https://github.com/niklasvh/html2canvas/issues/2008 -->
+            <div class="student-info-input" contenteditable="true"></div>
           </div>
           <div class="student-info-box">
             <div class="student-info-label">Class</div>
-            <input type="text" class="student-info-input" />
+            <div class="student-info-input" contenteditable="true"></div>
           </div>
           <div class="student-info-box">
             <div class="student-info-label">No.</div>
-            <input type="text" class="student-info-input" />
+            <div class="student-info-input" contenteditable="true"></div>
           </div>
         </div>
 
@@ -390,6 +386,8 @@
 
   <!-- スクリプト -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.3/jspdf.umd.min.js" integrity="sha512-+EeCylkt9WHJk5tGJxYdecHOcXFRME7qnbsfeMsdQL6NUPYm2+uGFmyleEqsmVoap/f3dN/sc3BX9t9kHXkHHg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script>
     // ワークシートの行を生成
     for (let i = 1; i <= 9; i++) {
@@ -569,6 +567,26 @@
       $("#worksheetTitleInput, .student-info-input").val("");
       $(".line-input").html('');
       $(".line-input").first().focus();
+    });
+
+    // ワークシートをPDF出力
+    $("#downloadPdfBtn").on("click", function () {
+      // jsPDFをCDNから読み込むとwindowグローバルオブジェクトにjspdfオブジェクトが追加される
+      // 分割代入でwindow.jspdfオブジェクトの中のjsPDFプロパティを変数に格納する
+      const { jsPDF } = window.jspdf;
+      // $("#worksheet")はjQueryオブジェクトを変えるので、$("#worksheet").get(0)でDOM要素(html)を取得
+      const $worksheetElement = $("#worksheet").get(0);
+      // DOM要素をcanvas要素に変換
+      html2canvas($worksheetElement).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF();
+        // PDFの高さと横幅を取得
+        const width = pdf.internal.pageSize.getWidth();
+        const height = pdf.internal.pageSize.getHeight();
+        // 引数：画像データ、画像形式、左上頂点のx軸、左上頂点のy軸、追加する画像の幅、追加する画像の高さ
+        pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+        pdf.save("英語ワークシート.pdf");
+      })
     });
   </script>
 </body>
