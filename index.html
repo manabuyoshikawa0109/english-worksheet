@@ -75,15 +75,25 @@
       font-family: sans-serif;
       background: #f5f5f5; /* ワークシートを囲う要素の背景色を変更 */
       display: flex; /* サイドバーとワークシートを横並びにする */
-      height: 100vh;
     }
 
     .sidebar {
       width: 300px;
+      height: 100vh;
       background: #343a40;
       color: #fff;
+      overflow-y: scroll; /* サイドバーの中身がサイドバーの高さを超えた場合、縦スクロールできるようにする */
+      transition: 0.5s; /* サイドバーをゆっくり開閉する */
+      flex-shrink: 0; /* スマホ時でもメインコンテンツの幅に影響されず、常に指定したwidthを維持する */
+    }
+
+    .sidebar-inner {
+      width: 300px; /* サイドバーが閉じた際サイドバーの大枠の幅は0pxになるが、中身の幅は300pxのままなので閉じる際にサイドバーのメニューが潰れない */
       padding: 20px;
-      overflow-y: scroll;
+    }
+
+    .sidebar.closed {
+      width: 0px; /* サイドバーの幅を0pxにすることでサイドバーを閉じる */
     }
 
     .sidebar h4 {
@@ -95,15 +105,30 @@
       ここでは片方のフレックスアイテムに「1」を指定しているのでこのフレックスアイテムが画面右側まで伸び余白を埋める
       bodyタグがフレックスコンテナとなる */
       flex-grow: 1;
-      overflow-y: scroll;
-      padding: 30px;
+      overflow: hidden; /* 中の要素がこの要素をはみ出た場合、非表示にする */
+      position: relative;
+    }
+
+    .header {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      z-index: 1; /* ワークシートが重なっても罫線がヘッダーに表示されないようにする */
+      background: #343a40;
+      color: #fff;
+    }
+
+    .worksheet-container {
+      padding: 80px 30px 30px 30px;
+      overflow: scroll;
+      height: 100vh;
     }
 
     /* =============================================
     ワークシートのCSS
     ============================================= */
     .worksheet {
-      max-width: 900px;
+      width: 900px;
       margin: 0 auto; /* 左右中央揃え */
       background: #fff;
       padding: 30px 40px;
@@ -244,12 +269,12 @@
     タブレット対応
     ============================================= */
     @media (max-width: 768px) {
-      .sidebar {
-        min-width: 300px;
+      .sidebar-inner {
+        padding: 20px 10px;
       }
 
-      .worksheet {
-        width: 900px;
+      .worksheet-container {
+        padding: 80px 5px 20px 5px;
       }
     }
 
@@ -270,117 +295,128 @@
 </head>
 
 <body>
-  <div class="sidebar">
+  <div id="sidebar" class="sidebar">
 
-    <h4>ワークシートのタイトル</h4>
-    <input id="worksheetTitleInput" type="text" class="form-control" placeholder="例）Today's weather" />
+    <div class="sidebar-inner">
+      <h4>ワークシートのタイトル</h4>
+      <input id="worksheetTitleInput" type="text" class="form-control" placeholder="例）Today's weather" />
 
-    <hr>
+      <hr>
 
-    <h4 class="mt-4">文字のスタイル</h4>
-    <div class="d-flex align-items-center gap-2">
-      <div class="input-group w-auto">
-        <input type="color" id="textColor" class="form-control form-control-color" />
+      <h4 class="mt-4">文字のスタイル</h4>
+      <div class="d-flex align-items-center gap-2">
+        <div class="input-group w-auto">
+          <input type="color" id="textColor" class="form-control form-control-color" />
+          <span class="input-group-text">色</span>
+        </div>
+        <div class="btn-group" role="group" aria-label="文字のスタイル">
+          <button id="btnBold" class="btn btn-primary fw-bold" title="太字">
+            B
+          </button>
+          <button id="btnItalic" class="btn btn-primary fst-italic" title="イタリック">
+            I
+          </button>
+          <button id="btnUnderline" class="btn btn-primary text-decoration-underline" title="下線">
+            U
+          </button>
+        </div>
+      </div>
+
+      <hr>
+
+      <h4 class="mt-4">罫線のスタイル</h4>
+      <div class="input-group mb-4">
+        <span class="input-group-text">第</span>
+        <select id="targetLine" class="form-select">
+          <option value="line1">1</option>
+          <option value="line2">2</option>
+          <option value="line3">3</option>
+          <option value="line4">4</option>
+        </select>
+        <span class="input-group-text">罫線</span>
+      </div>
+      <div class="input-group">
+        <select id="lineStyle" class="form-select">
+          <option value="solid">直</option>
+          <option value="dotted">点</option>
+          <option value="dashed">ダッシュ</option>
+        </select>
+        <span class="input-group-text">線</span>
+        <input id="lineColor" type="color" class="form-control form-control-color" />
         <span class="input-group-text">色</span>
       </div>
-      <div class="btn-group" role="group" aria-label="文字のスタイル">
-        <button id="btnBold" class="btn btn-primary fw-bold" title="太字">
-          B
+
+      <hr>
+
+      <h4 class="mt-4">行の幅</h4>
+      <div class="input-group mb-4">
+        <select id="targetRow" class="form-select"></select>
+        <span class="input-group-text">行目</span>
+        <input id="rowScaleValue" type="number" class="form-control" value="100" min="0" max="100" step="1" >
+        <span class="input-group-text">%</span>
+      </div>
+      <input id="rowScaleRange" type="range" class="w-100" value="100" min="0" max="100" step="1">
+
+      <hr>
+
+      <h4 class="mt-4">その他の操作</h4>
+      <div class="d-flex align-items-center gap-2">
+        <button id="downloadPdfBtn" class="btn btn-primary w-50">
+          <i class="fa-regular fa-file-pdf"></i>
+          PDF出力
         </button>
-        <button id="btnItalic" class="btn btn-primary fst-italic" title="イタリック">
-          I
+        <button id="clearBtn" class="btn btn-danger w-50">
+          <i class="fa-solid fa-trash-can"></i>
+          クリア
         </button>
-        <button id="btnUnderline" class="btn btn-primary text-decoration-underline" title="下線">
-          U
-        </button>
-    </div>
-    </div>
-
-    <hr>
-
-    <h4 class="mt-4">罫線のスタイル</h4>
-    <div class="input-group mb-4">
-      <span class="input-group-text">第</span>
-      <select id="targetLine" class="form-select">
-        <option value="line1">1</option>
-        <option value="line2">2</option>
-        <option value="line3">3</option>
-        <option value="line4">4</option>
-      </select>
-      <span class="input-group-text">罫線</span>
-    </div>
-    <div class="input-group">
-      <select id="lineStyle" class="form-select">
-        <option value="solid">直</option>
-        <option value="dotted">点</option>
-        <option value="dashed">ダッシュ</option>
-      </select>
-      <span class="input-group-text">線</span>
-      <input id="lineColor" type="color" class="form-control form-control-color" />
-      <span class="input-group-text">色</span>
-    </div>
-
-    <hr>
-
-    <h4 class="mt-4">行の幅</h4>
-    <div class="input-group mb-4">
-      <select id="targetRow" class="form-select"></select>
-      <span class="input-group-text">行目</span>
-      <input id="rowScaleValue" type="number" class="form-control" value="100" min="0" max="100" step="1" >
-      <span class="input-group-text">%</span>
-    </div>
-    <input id="rowScaleRange" type="range" class="w-100" value="100" min="0" max="100" step="1">
-
-    <hr>
-
-    <h4 class="mt-4">その他の操作</h4>
-    <div class="d-flex align-items-center gap-2">
-      <button id="downloadPdfBtn" class="btn btn-primary w-50">
-        <i class="fa-regular fa-file-pdf"></i>
-        PDF出力
-      </button>
-      <button id="clearBtn" class="btn btn-danger w-50">
-        <i class="fa-solid fa-trash-can"></i>
-        クリア
-      </button>
+      </div>
     </div>
   </div>
 
   <!-- ワークシート -->
   <div class="main-content">
-    <div id="worksheet" class="worksheet">
-      <div class="worksheet-header">
-        <div class="student-info">
-          <div class="student-info-box">
-            <div class="student-info-label">Grade</div>
-            <!-- input要素だとhtml2canvasでキャプチャした際に入力文字が上に配置され、切れてしまう不具合があるためcontenteditableを使用 -->
-            <!-- 参考：https://github.com/niklasvh/html2canvas/issues/2008 -->
-            <div class="student-info-input" contenteditable="true"></div>
-          </div>
-          <div class="student-info-box">
-            <div class="student-info-label">Class</div>
-            <div class="student-info-input" contenteditable="true"></div>
-          </div>
-          <div class="student-info-box">
-            <div class="student-info-label">No.</div>
-            <div class="student-info-input" contenteditable="true"></div>
-          </div>
-        </div>
-
-        <div class="line-group student-name">
-          <div class="line line1"></div>
-          <div class="line line2"></div>
-          <div class="line line3"></div>
-          <div class="line line4"></div>
-          <div class="student-name-label">
-            <span>Name</span><span>Date<span class="date"> ・・</span></span>
-          </div>
-          <div class="line-input" contenteditable="true"></div>
-        </div>
+    <nav class="header navbar">
+      <div class="container-fluid">
+        <a id="toggleSidebar" class="navbar-brand text-white">
+          <i class="fa-solid fa-bars"></i>
+        </a>
       </div>
+    </nav>
+    <div class="worksheet-container">
+      <div id="worksheet" class="worksheet">
+        <div class="worksheet-header">
+          <div class="student-info">
+            <div class="student-info-box">
+              <div class="student-info-label">Grade</div>
+              <!-- input要素だとhtml2canvasでキャプチャした際に入力文字が上に配置され、切れてしまう不具合があるためcontenteditableを使用 -->
+              <!-- 参考：https://github.com/niklasvh/html2canvas/issues/2008 -->
+              <div class="student-info-input" contenteditable="true"></div>
+            </div>
+            <div class="student-info-box">
+              <div class="student-info-label">Class</div>
+              <div class="student-info-input" contenteditable="true"></div>
+            </div>
+            <div class="student-info-box">
+              <div class="student-info-label">No.</div>
+              <div class="student-info-input" contenteditable="true"></div>
+            </div>
+          </div>
 
-      <div id="worksheetTitle" class="worksheet-title"></div>
-      <div id="lines"></div>
+          <div class="line-group student-name">
+            <div class="line line1"></div>
+            <div class="line line2"></div>
+            <div class="line line3"></div>
+            <div class="line line4"></div>
+            <div class="student-name-label">
+              <span>Name</span><span>Date<span class="date"> ・・</span></span>
+            </div>
+            <div class="line-input" contenteditable="true"></div>
+          </div>
+        </div>
+
+        <div id="worksheetTitle" class="worksheet-title"></div>
+        <div id="line-groups"></div>
+      </div>
     </div>
   </div>
 
@@ -391,7 +427,7 @@
   <script>
     // ワークシートの行を生成
     for (let i = 1; i <= 9; i++) {
-      $("#lines").append(`
+      $("#line-groups").append(`
         <div class="line-group">
           <div class="line line1"></div>
           <div class="line line2"></div>
@@ -587,6 +623,11 @@
         pdf.addImage(imgData, 'PNG', 0, 0, width, height);
         pdf.save("英語ワークシート.pdf");
       })
+    });
+
+    // 3本線アイコンクリックでサイドバー開閉
+    $("#toggleSidebar").on("click", function() {
+      $("#sidebar").toggleClass("closed");
     });
   </script>
 </body>
