@@ -350,12 +350,12 @@
 
       <h4 class="mt-4">行の幅</h4>
       <div class="input-group mb-4">
-        <select id="targetRow" class="form-select"></select>
+        <select id="targetLineInput" class="form-select"></select>
         <span class="input-group-text">行目</span>
-        <input id="rowScaleValue" type="number" class="form-control" value="100" min="0" max="100" step="1" >
+        <input id="lineInputScaleValue" type="number" class="form-control" value="100" min="0" max="100" step="1" >
         <span class="input-group-text">%</span>
       </div>
-      <input id="rowScaleRange" type="range" class="w-100" value="100" min="0" max="100" step="1">
+      <input id="lineInputScaleRange" type="range" class="w-100" value="100" min="0" max="100" step="1">
 
       <hr>
 
@@ -550,22 +550,22 @@
     };
 
     //「行の幅」のセレクトボックス
-    const $rowSelect = $("#targetRow");
+    const $lineInputSelect = $("#targetLineInput");
 
     // 行の入力フォームの数だけセレクトボックスのオプション要素を追加
     $(".line-input").each((i) =>
-      $rowSelect.append(`<option value="${i}">${i + 1}</option>`)
+      $lineInputSelect.append(`<option value="${i}">${i + 1}</option>`)
     );
 
     //「行の幅」のセレクトボックスから対象行の入力フォームを取得
     function $targetLineInput() {
-      const value = Number($rowSelect.val());
+      const value = Number($lineInputSelect.val());
       return $(".line-input").eq(value);
     }
 
     // 行の拡大・縮小率を「行の幅」の数値、範囲選択フォームにセット
-    function setTargetRowScaleToForm(scale) {
-      $('#rowScaleRange, #rowScaleValue').val(scale);
+    function setTargetLineInputScaleToForm(scale) {
+      $('#lineInputScaleRange, #lineInputScaleValue').val(scale);
     }
 
     // 対象行の入力フォームに拡大・縮小率を適用
@@ -574,7 +574,7 @@
     }
 
     //「行の幅」の数値、範囲選択フォーム変更時のイベント
-    $('#rowScaleRange, #rowScaleValue').on('input', function() {
+    $('#lineInputScaleRange, #lineInputScaleValue').on('input', function() {
       const value = Number($(this).val());
       if (!(MIN <= value && value <= MAX)) {
         alert(`行の幅の倍率は${MIN} 〜 ${MAX}の間で指定してください。`);
@@ -582,17 +582,17 @@
       }
 
       //「行の幅」のセレクトボックスが変更された時、選択された行の拡大・縮小率をフォームに保持するために変数の値を変えておく
-      const targetRowSelectValue = Number($rowSelect.val());
-      scales[targetRowSelectValue] = value;
+      const targetLineInputSelectValue = Number($lineInputSelect.val());
+      scales[targetLineInputSelectValue] = value;
       applyScaleToTargetLineInput(value);
-      setTargetRowScaleToForm(value);
+      setTargetLineInputScaleToForm(value);
     });
 
     //「行の幅」のセレクトボックスが変更した時のイベント
-    $("#targetRow").on("change", function() {
+    $("#targetLineInput").on("change", function() {
       const value = Number($(this).val());
       const scale = scales[value];
-      setTargetRowScaleToForm(scale);
+      setTargetLineInputScaleToForm(scale);
       $targetLineInput().focus();
     });
 
