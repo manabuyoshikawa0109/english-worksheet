@@ -1,0 +1,285 @@
+/* =============================================
+    フォント設定
+    ============================================= */
+@font-face {
+  font-family: "CJ Gothic";
+  src: url("/fonts/CJ_Gothic/CJ_Gothic_2019-Regular.woff2") format("woff2"),
+    url("/fonts/CJ_Gothic/CJ_Gothic_2019-Regular.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  /*
+      フォントファイルの内部メトリクス(文字の高さや行間を決める設計上の数値情報。OS・ブラウザ間で解釈が異なる)を
+      強制的に上書きし、異なる環境で同一の縦配置に揃える。
+      以下合計で「行間」を計算し、line-heightの挙動を決める。
+      */
+  ascent-override: 90%; /* ベースライン(文字が乗る線)から上に伸びる高さ */
+  descent-override: 10%; /* ベースラインから下に伸びる高さ */
+  line-gap-override: 0%; /* ascentとdescentの外側に追加される推奨余白 */
+}
+
+@font-face {
+  font-family: "Nunito";
+  src: url("/fonts/Nunito/Nunito-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Nunito";
+  src: url("/fonts/Nunito/Nunito-Italic-VariableFont_wght.ttf")
+    format("truetype");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+/* =============================================
+    パーツの共通CSS
+    ============================================= */
+/* input-group内のフォームは横一杯に幅を取らないようにする */
+.input-group > .form-select {
+  flex: none;
+  width: auto;
+}
+
+.input-group > input[type="color"] {
+  flex: none;
+  width: 50px;
+}
+
+/* ボタンに影をつけて立体感を出す */
+button {
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* ボタンをクリックした時に沈み込むようにし、躍動感を出す */
+button:active {
+  transform: translateY(1px);
+}
+
+body {
+  font-family: sans-serif;
+  background: #f5f5f5; /* ワークシートを囲う要素の背景色を変更 */
+  display: flex; /* サイドバーとワークシートを横並びにする */
+}
+
+.sidebar {
+  width: 300px;
+  height: 100vh;
+  background: #343a40;
+  color: #fff;
+  overflow-y: scroll; /* サイドバーの中身がサイドバーの高さを超えた場合、縦スクロールできるようにする */
+  transition: 0.5s; /* サイドバーをゆっくり開閉する */
+  flex-shrink: 0; /* スマホ時でもメインコンテンツの幅に影響されず、常に指定したwidthを維持する */
+}
+
+.sidebar-inner {
+  width: 300px; /* サイドバーが閉じた際サイドバーの大枠の幅は0pxになるが、中身の幅は300pxのままなので閉じる際にサイドバーのメニューが潰れない */
+  padding: 20px;
+}
+
+.sidebar.closed {
+  width: 0px; /* サイドバーの幅を0pxにすることでサイドバーを閉じる */
+}
+
+.sidebar h4 {
+  font-size: 1rem;
+}
+
+.main-content {
+  /* フレックスコンテナ内に余白があるとき、フレックスアイテムに指定した比率の分だけ余白を追加
+      ここでは片方のフレックスアイテムに「1」を指定しているのでこのフレックスアイテムが画面右側まで伸び余白を埋める
+      bodyタグがフレックスコンテナとなる */
+  flex-grow: 1;
+  overflow: hidden; /* 中の要素がこの要素をはみ出た場合、非表示にする */
+  position: relative;
+}
+
+.header {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  z-index: 1; /* ワークシートが重なっても罫線がヘッダーに表示されないようにする */
+  background: #343a40;
+  color: #fff;
+}
+
+.worksheet-container {
+  padding: 80px 30px 30px 30px;
+  overflow: scroll;
+  height: 100vh;
+}
+
+/* =============================================
+    ワークシートのCSS
+    ============================================= */
+.worksheet {
+  width: 900px;
+  margin: 0 auto; /* 左右中央揃え */
+  background: #fff;
+  padding: 30px 40px;
+  border: 1px solid #ccc;
+}
+
+.worksheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 1rem;
+}
+
+.student-info {
+  display: grid; /* フレックスアイテムをx、y軸方向に配置 */
+  grid-template-columns: repeat(
+    3,
+    80px
+  ); /* 横並びにするフレックスアイテム数とフレックスアイテムの横幅 */
+  border: 1px solid #000;
+}
+
+.student-info-box {
+  border-left: 1px solid #000;
+  padding: 4px 6px;
+  height: 80px;
+  display: flex;
+  flex-direction: column; /* フレックスアイテムを上から下に配置 */
+  justify-content: space-between;
+}
+
+.student-info-box:first-child {
+  border-left: none;
+}
+
+.student-info-label {
+  font-size: 0.65rem;
+  font-weight: bold;
+}
+
+.student-info-input {
+  font-size: 1.5rem;
+  border: none;
+  background: transparent;
+  width: 100%;
+  padding: 0;
+}
+
+.student-info-input:focus {
+  outline: none; /* フォームにカーソルが当たった際、輪郭線を表示しない */
+}
+
+.student-name-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  font-weight: bold;
+  position: absolute;
+  top: -1.3rem;
+  left: 0;
+  right: 0;
+}
+
+.date {
+  letter-spacing: 35px; /* テキストの水平方向の字間のスペース */
+}
+
+.line-group {
+  position: relative;
+  height: 51px;
+  margin-bottom: 50px;
+  /* フレックスコンテナ内に余白があるとき、フレックスアイテムに指定した比率の分だけ余白を追加
+      ここでは片方のフレックスアイテムに「1」を指定しているのでこのフレックスアイテムが画面右側まで伸び余白を埋める
+      bodyタグがフレックスコンテナとなる */
+  flex-grow: 1;
+}
+
+.student-name {
+  margin-top: 20px;
+  margin-bottom: 0 !important;
+}
+
+.line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+
+.line1 {
+  top: 0;
+}
+
+.line2 {
+  top: 16px;
+}
+
+.line3 {
+  top: 36px;
+}
+
+.line4 {
+  top: 50px;
+}
+
+/* 入力フォーム（scaleXで拡大縮小） */
+.line-input {
+  font-size: 50px;
+  line-height: 32px;
+  padding: 0 10px;
+  font-family: "CJ Gothic", sans-serif;
+  white-space: nowrap; /* 改行しない */
+  cursor: pointer;
+  min-width: 100%; /* 最低横幅は100% */
+  width: fit-content; /* 横幅は入力文字の長さに合わせる */
+  height: 100%;
+  transform-origin: left center; /* 要素を回転や拡大・縮小する際の基点(原点) */
+  transform: scaleX(1); /* 要素のX軸方向への拡大率 */
+}
+
+.line-input:focus {
+  outline: 2px solid rgba(0, 123, 255, 0.3);
+  background-color: rgba(0, 123, 255, 0.08);
+}
+
+.worksheet-title {
+  margin-bottom: 1.4rem;
+  text-align: center;
+  font-weight: bold;
+  font-size: 2rem;
+  height: 48px;
+  border-bottom: 2px solid #000000;
+  white-space: nowrap; /* 自動改行しない */
+  overflow: hidden; /* 入力文字が横幅を超えた場合、超えた文字は表示しない */
+  text-overflow: ellipsis; /* 入力文字が横幅を超えた場合、3点表示する */
+  font-family: "Nunito", sans-serif;
+}
+
+/* =============================================
+    タブレット対応
+    ============================================= */
+@media (max-width: 768px) {
+  .sidebar-inner {
+    padding: 20px 10px;
+  }
+
+  .worksheet-container {
+    padding: 80px 5px 20px 5px;
+  }
+}
+
+/* =============================================
+    印刷対応
+    ============================================= */
+@media print {
+  :-webkit-scrollbar {
+    display: none; /* Windowsでスクロールバーが表示されるのを防ぐ */
+  }
+
+  @page {
+    size: A4 landscape; /* A4用紙横向き */
+    margin: 0; /* 用紙の余白 */
+  }
+}
