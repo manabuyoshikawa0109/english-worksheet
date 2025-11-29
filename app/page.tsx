@@ -13,6 +13,9 @@ export default function EnglishWorksheet() {
   // 英語ワークシートのタイトル
   const [title, setTitle] = useState("");
 
+  // サイドバーの開閉状態を管理
+  const [isSidebarClosed, setIsSidebarClosed] = useState(false);
+
   // line-groupのインデックス数(1〜9)を持つ配列
   const [lineGroupIndexes] = useState(Array.from({ length: 9 }, (_, i) => i + 1));
 
@@ -85,7 +88,7 @@ export default function EnglishWorksheet() {
     // JSXでは1つの要素を返す必要がある為、全体を1つの要素で囲う必要がある
     // しかしdivタグ等で囲うと無駄にネストすることになる為react fragmentを使う
     <>
-      <div id="sidebar" className="sidebar">
+      <div className={`sidebar ${isSidebarClosed ? 'closed' : ''}`}>
 
         <div className="sidebar-inner">
           <h4>ワークシートのタイトル</h4>
@@ -183,7 +186,10 @@ export default function EnglishWorksheet() {
       <div className="main-content">
         <nav className="header navbar">
           <div className="container-fluid">
-            <a id="toggleSidebar" className="navbar-brand text-white">
+            <a
+              onClick={() => setIsSidebarClosed(!isSidebarClosed)}
+              className="navbar-brand text-white"
+            >
               <i className="fa-solid fa-bars"></i>
             </a>
           </div>
