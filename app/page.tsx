@@ -7,6 +7,22 @@
 
 import { useState } from "react";
 
+// 型宣言
+// 以下理由によりコンポーネント関数(export defaultで定義される部分)の外に書くのが慣習
+// 1.ファイル全体、さらには必要に応じて他のファイルからもインポートして再利用しやすくするため
+// 2.コンポーネント関数内は再レンダリングのたびに実行されるので型宣言が再評価されることになりロジック上無駄であるため
+
+// 罫線のスタイルオブジェクト内の値の型を宣言
+type LineStyle = {
+  color: string;
+  style: string;
+};
+
+// contentEditable属性を持つdiv要素の型
+type ContentEditableElement = HTMLDivElement | null;
+
+// コンポーネント関数(export defaultで定義される部分)の中には、主にUIのレンダリングに関するロジック(JSX、useState等)を記載する
+// データ整形や計算などの純粋なロジックは、コンポーネント関数の外に出す
 export default function EnglishWorksheet() {
   // 変数とセッター関数を定義。useState内の値は変数の初期値
 
@@ -21,12 +37,6 @@ export default function EnglishWorksheet() {
 
   // 罫線のインデックス数(1〜4)を持つ配列
   const [lineIndexes] = useState(Array.from({ length: 4 }, (_, i) => i + 1));
-
-  // 罫線のスタイルオブジェクト内の値の型を宣言
-  type LineStyle = {
-    color: string;
-    style: string;
-  };
 
   // 各罫線のスタイルを保持した変数
   // 動的に作成したline${i}がline1〜4のいずれかと分からずキーが存在しないエラーとなるため、
@@ -84,6 +94,51 @@ export default function EnglishWorksheet() {
     }));
   };
 
+  // 最後にフォーカスされた罫線入力要素のDOM参照を保持するステート(初期値はnull)
+  const [lastActiveLineInput, setLastActiveLineInput] = useState<ContentEditableElement>(null);
+
+  // 選択した文字のフォントを変更する共通関数
+  const changeFontStyle = (command: string, value: string | undefined) => {
+    if (!lastActiveLineInput) {
+      alert("スタイルを変更したい文字を選択してください。");
+      return;
+    }
+
+    try {
+      lastActiveLineInput.focus();
+
+      // 書式変更をHTMLタグではなくCSSスタイルで適用するよう、execCommand()の動作モードを切り替える
+      document.execCommand("styleWithCSS", false, 'true');
+      document.execCommand(command, false, value);
+    } catch (e) {
+      console.error("execCommand failed:", e);
+    }
+  };
+
+  // 選択した文字の色を変更する処理
+  const changeTargetTextColor = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newColor = e.target.value;
+    changeFontStyle("foreColor", newColor);
+  };
+
+  // 選択した文字を太字に変更する処理
+  const changeTargetTextToBold = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    changeFontStyle("bold", undefined);
+  };
+
+  // 選択した文字をイタリックに変更する処理
+  const changeTargetTextToItalic = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    changeFontStyle("italic", undefined);
+  };
+
+  // 選択した文字に下線を追加する処理
+  const addTargetTextToUnderline = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    changeFontStyle("underline", undefined);
+  };
+
   return (
     // JSXでは1つの要素を返す必要がある為、全体を1つの要素で囲う必要がある
     // しかしdivタグ等で囲うと無駄にネストすることになる為react fragmentを使う
@@ -99,17 +154,33 @@ export default function EnglishWorksheet() {
           <h4 className="mt-4">文字のスタイル</h4>
           <div className="d-flex align-items-center gap-2">
             <div className="input-group w-auto">
-              <input type="color" id="textColor" className="form-control form-control-color" />
+              <input
+                onChange={changeTargetTextColor}
+                type="color"
+                className="form-control form-control-color"
+              />
               <span className="input-group-text">色</span>
             </div>
             <div className="btn-group" role="group" aria-label="文字のスタイル">
-              <button id="btnBold" className="btn btn-primary fw-bold" title="太字">
+              <button
+                onClick={changeTargetTextToBold}
+                className="btn btn-primary fw-bold"
+                title="太字"
+              >
                 B
               </button>
-              <button id="btnItalic" className="btn btn-primary fst-italic" title="イタリック">
+              <button
+                onClick={changeTargetTextToItalic}
+                className="btn btn-primary fst-italic"
+                title="イタリック"
+              >
                 I
               </button>
-              <button id="btnUnderline" className="btn btn-primary text-decoration-underline" title="下線">
+              <button
+                onClick={addTargetTextToUnderline}
+                className="btn btn-primary text-decoration-underline"
+                title="下線"
+              >
                 U
               </button>
             </div>
@@ -229,7 +300,14 @@ export default function EnglishWorksheet() {
                 <div className="student-name-label">
                   <span>Name</span><span>Date<span className="date"> ・・</span></span>
                 </div>
-                <div className="line-input" contentEditable="true"></div>
+                <div
+                  className="line-input"
+                  contentEditable="true"
+                  onFocus={(e) => setLastActiveLineInput(e.currentTarget)} // フォーカスが当たった時(マウスを使わずTabキーで移動した時を考慮)
+                  onKeyUp={(e) => setLastActiveLineInput(e.currentTarget)} // キー入力があった時(キーボード操作によるテキスト入力・矢印キーでの文字の選択範囲の変更を考慮)
+                  onClick={(e) => setLastActiveLineInput(e.currentTarget)} // マウスでクリックされた時
+                >
+                </div>
               </div>
             </div>
 
@@ -246,7 +324,17 @@ export default function EnglishWorksheet() {
                     >
                     </div>
                   ))}
-                  <div className="line-input" contentEditable="true"></div>
+                  <div
+                    className="line-input"
+                    contentEditable="true"
+                    // onChangeは以下理由により使用できないので、ブラウザのネイティブイベントを使う
+                    // 1.フォーム要素(<input>, <textarea>, <select>)で、その要素の「値 (value)」が変化したときに発生するため
+                    // 2.「値が変更された」ことしか教えてくれず、フォーカスの移動等は補足できないため
+                    onFocus={(e) => setLastActiveLineInput(e.currentTarget)} // フォーカスが当たった時(マウスを使わずTabキーで移動した時を考慮)
+                    onKeyUp={(e) => setLastActiveLineInput(e.currentTarget)} // キー入力があった時(キーボード操作によるテキスト入力・矢印キーでの文字の選択範囲の変更を考慮)
+                    onClick={(e) => setLastActiveLineInput(e.currentTarget)} // マウスでクリックされた時
+                  >
+                  </div>
                 </div>
               ))}
             </div>
