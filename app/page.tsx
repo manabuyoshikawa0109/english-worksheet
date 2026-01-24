@@ -5,7 +5,7 @@
 // Client Componentであることを明示的に指定する
 'use client'
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 // 型宣言
 // 以下理由によりコンポーネント関数(export defaultで定義される部分)の外に書くのが慣習
@@ -139,6 +139,77 @@ export default function EnglishWorksheet() {
     changeFontStyle("underline", undefined);
   };
 
+  const X_SCALE_STEP = 1; // 罫線入力フォームのx軸に対する拡大・縮小率のステップ数
+  const MIN_X_SCALE = 0; // 罫線入力フォームのx軸に対する拡大・縮小率の最小値
+  const MAX_X_SCALE = 100; // 罫線入力フォームのx軸に対する拡大・縮小率の最大値
+
+  // セレクトボックスで現在選択されている罫線入力フォーム(初期値はlineInput1)
+  const [selectedLineInputKey, setSelectedLineInputKey] = useState('lineInput1');
+
+  // 各罫線入力フォームのx軸に対する拡大・縮小率
+  const [lineInputXScales, setLineInputXScales] = useState<Record<string, number>>({
+    lineInput1: 100,
+    lineInput2: 100,
+    lineInput3: 100,
+    lineInput4: 100,
+    lineInput5: 100,
+    lineInput6: 100,
+    lineInput7: 100,
+    lineInput8: 100,
+    lineInput9: 100,
+  });
+
+  // 罫線入力フォームのx軸に対する拡大・縮小率を取得する関数
+  const getXScaleStyle = (lineInputKey: string) => {
+    const scale = lineInputXScales[lineInputKey];
+    return {transform: `scaleX(${scale / 100})`};
+  };
+
+  // 対象の罫線入力フォームのx軸に対する拡大・縮小率が変更された時のイベントハンドラー
+  const changeTargetLineInputXScale = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const scale = Number(e.target.value);
+    if (!(MIN_X_SCALE <= scale && scale <= MAX_X_SCALE)) {
+      alert(`罫線の幅の倍率は${MIN_X_SCALE} 〜 ${MAX_X_SCALE}%の間で指定してください。`);
+      return;
+    }
+    setLineInputXScales(prevLineInputXScales => ({
+      ...prevLineInputXScales,
+      [selectedLineInputKey]: scale
+    }));
+  };
+
+  // 複数の<div contentEditable="true"></div>要素への参照をまとめて保管する箱
+  // useRefは値が変わっても再レンダリングされない。DOM要素を直接保持できる。
+  // lineInputRefs.currentに値が入る
+  // イメージとしてはlineInputRefs.current = {'lineInput1' => HTMLDivElement, 'lineInput2' => HTMLDivElement}となる
+  // 初回レンダリング時はDOM要素がなくdiv要素に記載しているref={(el) => {...}}のelにはnullが渡ってくるので、nullも許可しておく
+  // 括弧内に記載している空オブジェクトが初期値となる
+  const lineInputRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // 初回レンダリング時、及び第2引数の依存配列内の変数の値が変わった時に実行される
+  // 正確には値が変わってレンダリングされ、DOMが更新されてから呼ばれる
+  useEffect(() => {
+    const lineInputEl = lineInputRefs.current[selectedLineInputKey];
+    if (lineInputEl) {
+      lineInputEl.focus();
+
+      // 以下、カーソルを入力されている文字の末尾に移動させる処理
+      // <div contentEditable="true"></div>要素の中身(値)全てを範囲選択する
+      const range = document.createRange();
+      range.selectNodeContents(lineInputEl);
+      // 範囲選択を潰す。falseで範囲選択の「一番最後」にカーソルを置く
+      // ここまではrangeオブジェクトの中身が変わっただけで、実際の画面には反映されない
+      range.collapse(false);
+
+      // 今ユーザーが画面でどこを選択しているか、実カーソル・実テキスト選択状態を取得
+      const sel = window.getSelection();
+      // 古い選択が残っていると不具合となるので、既に選択されているものを消し何も選択されていない状態にする
+      sel?.removeAllRanges();
+      // 上記で作成した「一番最後」にカーソルを置いた状態を実際の選択状態として適用
+      sel?.addRange(range);
+    }
+  }, [selectedLineInputKey]);
+
   return (
     // JSXでは1つの要素を返す必要がある為、全体を1つの要素で囲う必要がある
     // しかしdivタグ等で囲うと無駄にネストすることになる為react fragmentを使う
@@ -228,14 +299,38 @@ export default function EnglishWorksheet() {
 
           <hr />
 
-          <h4 className="mt-4">行の幅</h4>
+          <h4 className="mt-4">罫線の幅</h4>
           <div className="input-group mb-4">
-            <select id="targetLineInput" className="form-select"></select>
+            <select
+              value={selectedLineInputKey}
+              onChange={(e) => setSelectedLineInputKey(e.target.value)}
+              className="form-select"
+            >
+            {lineGroupIndexes.map((lineGroupIndex) => (
+              <option key={lineGroupIndex} value={`lineInput${lineGroupIndex}`}>{lineGroupIndex}</option>
+            ))}
+            </select>
             <span className="input-group-text">行目</span>
-            <input id="lineInputScaleValue" type="number" className="form-control" value="100" min="0" max="100" step="1" />
+            <input
+              type="number"
+              className="form-control"
+              onChange={changeTargetLineInputXScale}
+              value={lineInputXScales[selectedLineInputKey]}
+              min={MIN_X_SCALE}
+              max={MAX_X_SCALE}
+              step={X_SCALE_STEP}
+            />
             <span className="input-group-text">%</span>
           </div>
-          <input id="lineInputScaleRange" type="range" className="w-100" value="100" min="0" max="100" step="1" />
+          <input
+            type="range"
+            className="w-100"
+            onChange={changeTargetLineInputXScale}
+            value={lineInputXScales[selectedLineInputKey]}
+            min={MIN_X_SCALE}
+            max={MAX_X_SCALE}
+            step={X_SCALE_STEP}
+          />
 
           <hr />
 
@@ -301,8 +396,12 @@ export default function EnglishWorksheet() {
                   <span>Name</span><span>Date<span className="date"> ・・</span></span>
                 </div>
                 <div
+                  // DOMレンダリング時にlineInputRefs.currentの中に指定したキー(lineInput1)でこのdiv要素自体を保存
+                  // 初回レンダリング時はDOM要素がなくelにはnullが渡ってくる
+                  ref={(el) => {lineInputRefs.current['lineInput1'] = el}}
                   className="line-input"
                   contentEditable="true"
+                  style={getXScaleStyle('lineInput1')}
                   onFocus={(e) => setLastActiveLineInput(e.currentTarget)} // フォーカスが当たった時(マウスを使わずTabキーで移動した時を考慮)
                   onKeyUp={(e) => setLastActiveLineInput(e.currentTarget)} // キー入力があった時(キーボード操作によるテキスト入力・矢印キーでの文字の選択範囲の変更を考慮)
                   onClick={(e) => setLastActiveLineInput(e.currentTarget)} // マウスでクリックされた時
@@ -325,8 +424,10 @@ export default function EnglishWorksheet() {
                     </div>
                   ))}
                   <div
+                    ref={(el) => {lineInputRefs.current[`lineInput${lineGroupIndex + 1}`] = el}}
                     className="line-input"
                     contentEditable="true"
+                    style={getXScaleStyle(`lineInput${lineGroupIndex + 1}`)}
                     // onChangeは以下理由により使用できないので、ブラウザのネイティブイベントを使う
                     // 1.フォーム要素(<input>, <textarea>, <select>)で、その要素の「値 (value)」が変化したときに発生するため
                     // 2.「値が変更された」ことしか教えてくれず、フォーカスの移動等は補足できないため
