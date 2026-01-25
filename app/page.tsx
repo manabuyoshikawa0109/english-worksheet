@@ -210,6 +210,21 @@ export default function EnglishWorksheet() {
     }
   }, [selectedLineInputKey]);
 
+  // ワークシート上の全ての文字を削除
+  const clearAllTexts = () => {
+    if (!confirm("ワークシート上の文字をすべて削除します。よろしいですか？")) return;
+    // タイトルをクリア
+    setTitle('');
+    // 罫線入力フォーム上の文字をクリア
+    const worksheet = document.getElementById('worksheet');
+    worksheet?.querySelectorAll<HTMLElement>('[contenteditable="true"]')
+      .forEach((lineInputEl) => {
+        lineInputEl.innerHTML = '';
+      });
+    // 1行目にフォーカスを戻す
+    lineInputRefs.current['lineInput1']?.focus();
+  };
+
   return (
     // JSXでは1つの要素を返す必要がある為、全体を1つの要素で囲う必要がある
     // しかしdivタグ等で囲うと無駄にネストすることになる為react fragmentを使う
@@ -340,7 +355,10 @@ export default function EnglishWorksheet() {
               <i className="fa-regular fa-file-pdf"></i>
               PDF出力
             </button>
-            <button id="clearBtn" className="btn btn-danger w-50">
+            <button
+              onClick={clearAllTexts}
+              className="btn btn-danger w-50"
+            >
               <i className="fa-solid fa-trash-can"></i>
               クリア
             </button>
