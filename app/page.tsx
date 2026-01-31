@@ -251,7 +251,13 @@ export default function EnglishWorksheet() {
 
         <div className="sidebar-inner">
           <h4>ワークシートのタイトル</h4>
-          <input onChange={(e) => setTitle(e.target.value)} type="text" className="form-control" placeholder="例）Today's weather" />
+          <input
+            onChange={(e) => setTitle(e.target.value)}
+            value={title}
+            type="text"
+            className="form-control"
+            placeholder="例）Today's weather"
+          />
 
           <hr />
 
