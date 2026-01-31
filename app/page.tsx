@@ -6,6 +6,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from "react";
+import { jsPDF } from "jspdf";
+import html2canvas from 'html2canvas';
 
 // 型宣言
 // 以下理由によりコンポーネント関数(export defaultで定義される部分)の外に書くのが慣習
@@ -225,6 +227,22 @@ export default function EnglishWorksheet() {
     lineInputRefs.current['lineInput1']?.focus();
   };
 
+  // ワークシートをPDFでダウンロード
+  const downloadWorksheetAsPdf = () => {
+      const worksheetElement = document.getElementById("worksheet") as HTMLElement;
+      // DOM要素をcanvas要素に変換
+      html2canvas(worksheetElement).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const jsPdf = new jsPDF();
+        // PDFの高さと横幅を取得
+        const width = jsPdf.internal.pageSize.getWidth();
+        const height = jsPdf.internal.pageSize.getHeight();
+        // 引数：画像データ、画像形式、左上頂点のx軸、左上頂点のy軸、追加する画像の幅、追加する画像の高さ
+        jsPdf.addImage(imgData, 'PNG', 0, 0, width, height);
+        jsPdf.save("英語ワークシート.pdf");
+      })
+  };
+
   return (
     // JSXでは1つの要素を返す必要がある為、全体を1つの要素で囲う必要がある
     // しかしdivタグ等で囲うと無駄にネストすることになる為react fragmentを使う
@@ -351,7 +369,10 @@ export default function EnglishWorksheet() {
 
           <h4 className="mt-4">その他の操作</h4>
           <div className="d-flex align-items-center gap-2">
-            <button id="downloadPdfBtn" className="btn btn-primary w-50">
+            <button
+              onClick={downloadWorksheetAsPdf}
+              className="btn btn-primary w-50"
+            >
               <i className="fa-regular fa-file-pdf"></i>
               PDF出力
             </button>
