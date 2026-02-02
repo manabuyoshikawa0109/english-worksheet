@@ -136,7 +136,7 @@ export default function EnglishWorksheet() {
   };
 
   // 選択した文字に下線を追加する処理
-  const addTargetTextToUnderline = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const addUnderlineToTargetText = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     changeFontStyle("underline", undefined);
   };
@@ -287,7 +287,7 @@ export default function EnglishWorksheet() {
                 I
               </button>
               <button
-                onClick={addTargetTextToUnderline}
+                onClick={addUnderlineToTargetText}
                 className="btn btn-primary text-decoration-underline"
                 title="下線"
               >
